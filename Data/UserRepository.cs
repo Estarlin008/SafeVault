@@ -1,5 +1,5 @@
 // File: Data/UserRepository.cs
-using Microsoft.Data.SqlClient;
+using System.Data.SqlClient;
 
 namespace SafeVault.Data
 {
