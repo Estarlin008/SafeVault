@@ -33,7 +33,7 @@ namespace SafeVault.Tests
             var user = _repository.GetUserByEmail(cleanEmail);
 
             Assert.NotNull(user, "El usuario debería existir, la tabla no debe haber sido eliminada.");
-            NUnit.Framework.StringAssert.DoesNotContain("DROP", user?.Username, "El nombre no debe contener comandos SQL.");
+            Assert.That(user?.Username, Does.Not.Contain("DROP"), "El nombre no debe contener comandos SQL.");
         }
 
         [Test]
@@ -49,8 +49,9 @@ namespace SafeVault.Tests
             var user = _repository.GetUserByEmail(cleanEmail);
 
             Assert.NotNull(user, "El usuario debería existir.");
-            NUnit.Framework.StringAssert.DoesNotContain("<script>", user?.Username, "El nombre no debe contener etiquetas <script>.");
-            Assert.DoesNotContain("alert", user?.Username, "El nombre no debe contener código JavaScript.");
+            Assert.That(user?.Username, Does.Not.Contain("<script>"), "El nombre no debe contener etiquetas <script>.");
+            Assert.That(user?.Username, Does.Not.Contain("alert"), "El nombre no debe contener código JavaScript.");
+
         }
     }
 }
