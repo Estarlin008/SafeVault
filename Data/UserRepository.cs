@@ -83,6 +83,9 @@ namespace SafeVault.Data
                     if (result == null) return false;
 
                     string storedHash = (string)result;
+                    
+                    if (string.IsNullOrWhiteSpace(storedHash))
+                        return false;
                     return BCrypt.Net.BCrypt.Verify(password, storedHash);
                 }
             }

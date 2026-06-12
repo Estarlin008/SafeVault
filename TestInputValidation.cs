@@ -87,5 +87,60 @@ namespace SafeVault.Tests
             Assert.AreEqual("User", role, "El usuario debe tener rol User.");
             Assert.AreNotEqual("Admin", role, "El usuario no debe tener acceso al panel de administración.");
         }
+
+        [Test]
+        public void TestEmailValidation()
+        {
+            bool isValid =
+                InputSanitizer.IsValidEmail(
+                    "correo-invalido"
+                );
+
+            Assert.IsFalse(
+                isValid,
+                "Debe rechazar emails inválidos."
+            );
+        }
+
+        [Test]
+        public void TestAdvancedSQLInjection()
+        {
+            string attack =
+                "' UNION SELECT * FROM Users --";
+
+            string sanitized =
+                InputSanitizer.Sanitize(attack);
+
+            Assert.That(
+                sanitized,
+                Does.Not.Contain("UNION")
+            );
+
+            Assert.That(
+                sanitized,
+                Does.Not.Contain("SELECT")
+            );
+        }
+
+
+        [Test]
+        public void TestAdvancedXSS()
+        {
+            string attack =
+                "<img src=x onerror=alert('hack')>";
+
+            string sanitized =
+                InputSanitizer.Sanitize(attack);
+
+            Assert.That(
+                sanitized,
+                Does.Not.Contain("alert")
+            );
+
+            Assert.That(
+                sanitized,
+                Does.Not.Contain("<img")
+            );
+        }
     }
 }

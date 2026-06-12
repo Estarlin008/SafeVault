@@ -20,6 +20,12 @@ namespace SafeVault.Controllers
        [HttpPost("register")]
         public IActionResult Register(string username, string email, string password, string role = "User")
         {
+            if (string.IsNullOrWhiteSpace(username))
+                return BadRequest("Username requerido.");
+
+            if (string.IsNullOrWhiteSpace(password))
+                return BadRequest("Password requerida.");
+                
             if (!InputSanitizer.IsValidEmail(email))
                 return BadRequest("Email inválido.");
 

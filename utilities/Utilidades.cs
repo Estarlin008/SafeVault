@@ -27,7 +27,9 @@ namespace SafeVault.Utilities
                                 .Replace("--", "");
 
             // 4. Eliminar palabras clave peligrosas de SQL
-            string[] sqlKeywords = { "DROP", "DELETE", "INSERT", "UPDATE", "ALTER" };
+            string[] sqlKeywords = { "DROP", "DELETE", "INSERT", "UPDATE", "ALTER", "SELECT", 
+            "UNION", "EXEC", "EXECUTE", "TRUNCATE" };
+            
             foreach (var keyword in sqlKeywords)
             {   
                 sanitized = Regex.Replace(sanitized, $@"\b{keyword}\b", "", RegexOptions.IgnoreCase);
