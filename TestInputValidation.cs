@@ -27,7 +27,7 @@ namespace SafeVault.Tests
             string cleanEmail = InputSanitizer.Sanitize(email);
 
             // Insertar usuario con entrada maliciosa
-            _repository.AddUser(cleanUsername, cleanEmail);
+            _repository.AddUser(cleanUsername, cleanEmail, "TestPassword123");
 
             // Recuperar usuario para verificar que no se ejecutó código malicioso
             var user = _repository.GetUserByEmail(cleanEmail);
@@ -45,7 +45,7 @@ namespace SafeVault.Tests
             string cleanUsername = InputSanitizer.Sanitize(maliciousInput);
             string cleanEmail = InputSanitizer.Sanitize(email);
 
-            _repository.AddUser(cleanUsername, cleanEmail);
+            _repository.AddUser(cleanUsername, cleanEmail, "TestPassword123");
             var user = _repository.GetUserByEmail(cleanEmail);
 
             Assert.NotNull(user, "El usuario debería existir.");

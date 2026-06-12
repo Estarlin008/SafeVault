@@ -17,28 +17,36 @@ namespace SafeVault.Controllers
             _repository = new UserRepository(connectionString);
         }
 
-        [HttpPost("register")]
-        public IActionResult Register(string username, string email)
+       [HttpPost("register")]
+        public IActionResult Register(string username, string email, string password, string role = "User")
         {
-            // Sanitizar entradas
-            string cleanUsername = InputSanitizer.Sanitize(username);
-            string cleanEmail = InputSanitizer.Sanitize(email);
-
-            if (!InputSanitizer.IsValidEmail(cleanEmail))
+            if (!InputSanitizer.IsValidEmail(email))
                 return BadRequest("Email inválido.");
 
-            _repository.AddUser(cleanUsername, cleanEmail);
+            _repository.AddUser(username, email, password, role);
             return Ok("Usuario registrado de forma segura.");
         }
 
-        [HttpGet("login")]
-        public IActionResult Login(string email)
+        [HttpPost("login")]
+        public IActionResult Login(string email, string password)
         {
-            var user = _repository.GetUserByEmail(email);
-            if (user == null)
-                return NotFound("Usuario no encontrado.");
+            bool isAuthenticated = _repository.AuthenticateUser(email, password);
+            if (!isAuthenticated)
+                return Unauthorized("Credenciales inválidas.");
 
-            return Ok(user);
+            string? role = _repository.GetUserRole(email);
+            return Ok(new { Message = "Login exitoso", Role = role });
+        }
+
+
+        [HttpGet("admin-tools")]
+        public IActionResult AdminTools(string email)
+        {
+            string? role = _repository.GetUserRole(email);
+            if (role != "Admin")
+                return Unauthorized("Acceso restringido a administradores.");
+
+            return Ok("Herramientas administrativas disponibles.");
         }
     }
 }

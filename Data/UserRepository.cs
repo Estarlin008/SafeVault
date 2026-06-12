@@ -1,5 +1,7 @@
 // File: Data/UserRepository.cs
 using System.Data.SqlClient;
+using SafeVault.Utilities;
+using BCrypt.Net;
 
 namespace SafeVault.Data
 {
@@ -42,15 +44,74 @@ namespace SafeVault.Data
         }
 
         // Insertar usuario de forma segura
-        public void AddUser(string username, string email)
+        public void AddUser(string username, string email, string password, string role = "User")
+        {
+            string cleanUsername = InputSanitizer.Sanitize(username);
+            string cleanEmail = InputSanitizer.Sanitize(email);
+
+            // Encriptar contraseña
+            string passwordHash = BCrypt.Net.BCrypt.HashPassword(password);
+
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                string query = "INSERT INTO Users (Username, Email, PasswordHash, Role) VALUES (@Username, @Email, @PasswordHash, @Role)";
+                using (var command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Username", cleanUsername);
+                    command.Parameters.AddWithValue("@Email", cleanEmail);
+                    command.Parameters.AddWithValue("@PasswordHash", passwordHash);
+                    command.Parameters.AddWithValue("@Role", role);
+
+                    connection.Open();
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        // Autenticación: verificar credenciales
+        public bool AuthenticateUser(string email, string password)
         {
             using (var connection = new SqlConnection(_connectionString))
             {
-                string query = "INSERT INTO Users (Username, Email) VALUES (@Username, @Email)";
-
+                string query = "SELECT PasswordHash FROM Users WHERE Email = @Email";
                 using (var command = new SqlCommand(query, connection))
                 {
-                    command.Parameters.AddWithValue("@Username", username);
+                    command.Parameters.AddWithValue("@Email", email);
+                    connection.Open();
+
+                    var result = command.ExecuteScalar();
+                    if (result == null) return false;
+
+                    string storedHash = (string)result;
+                    return BCrypt.Net.BCrypt.Verify(password, storedHash);
+                }
+            }
+        }
+
+
+        // Obtener rol del usuario
+        public string? GetUserRole(string email)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                string query = "SELECT Role FROM Users WHERE Email = @Email";
+                using (var command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Email", email);
+                    connection.Open();
+                    return command.ExecuteScalar() as string;
+                }
+            }
+        }
+
+        public void UpdateUserRole(string email, string newRole)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                string query = "UPDATE Users SET Role = @Role WHERE Email = @Email";
+                using (var command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Role", newRole);
                     command.Parameters.AddWithValue("@Email", email);
 
                     connection.Open();
