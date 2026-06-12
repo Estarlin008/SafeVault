@@ -48,5 +48,25 @@ namespace SafeVault.Controllers
 
             return Ok("Herramientas administrativas disponibles.");
         }
+
+        [HttpGet("admin-panel")]
+        public IActionResult AdminPanel(string email)
+        {
+            string? role = _repository.GetUserRole(email);
+            if (role != "Admin")
+                return Unauthorized("Acceso restringido a administradores.");
+
+            return Ok("Bienvenido al panel de administración.");
+        }
+
+        [HttpGet("user-dashboard")]
+        public IActionResult UserDashboard(string email)
+        {
+            string? role = _repository.GetUserRole(email);
+            if (role != "User" && role != "Admin")
+                return Unauthorized("Acceso restringido a usuarios registrados.");
+
+            return Ok("Bienvenido al dashboard de usuario.");
+        }
     }
 }

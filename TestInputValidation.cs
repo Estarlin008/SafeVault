@@ -7,7 +7,7 @@ namespace SafeVault.Tests
     [TestFixture]
     public class TestInputValidation
     {
-        private UserRepository _repository;
+        private UserRepository _repository = null!;
 
         [SetUp]
         public void Setup()
@@ -52,6 +52,40 @@ namespace SafeVault.Tests
             Assert.That(user?.Username, Does.Not.Contain("<script>"), "El nombre no debe contener etiquetas <script>.");
             Assert.That(user?.Username, Does.Not.Contain("alert"), "El nombre no debe contener código JavaScript.");
 
+        }
+
+        [Test]
+        public void TestLoginWithInvalidPassword()
+        {
+            string email = "admin_test@example.com";
+
+            _repository.AddUser("AdminUser", email, "AdminPassword123", "Admin");
+
+            bool isAuthenticated = _repository.AuthenticateUser(email, "wrongpassword");
+
+            Assert.IsFalse(isAuthenticated);
+        }
+
+        [Test]
+        public void TestLoginWithNonExistentUser()
+        {
+            bool isAuthenticated = _repository.AuthenticateUser("ghost@example.com", "password");
+            Assert.IsFalse(isAuthenticated, "El login debe fallar con usuario inexistente.");
+        }
+
+        [Test]
+        public void TestAdminAccessAllowed()
+        {
+            string? role = _repository.GetUserRole("admin@example.com");
+            Assert.AreEqual("Admin", role, "El usuario admin debe tener rol Admin.");
+        }
+
+         [Test]
+        public void TestUserAccessDeniedToAdminPanel()
+        {
+            string? role = _repository.GetUserRole("user@example.com");
+            Assert.AreEqual("User", role, "El usuario debe tener rol User.");
+            Assert.AreNotEqual("Admin", role, "El usuario no debe tener acceso al panel de administración.");
         }
     }
 }
